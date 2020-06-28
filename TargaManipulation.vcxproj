@@ -145,6 +145,32 @@
   <ItemGroup>
     <ClInclude Include="Image.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="examples\EXAMPLE_extracredit.tga" />
+    <Image Include="examples\EXAMPLE_part1.tga" />
+    <Image Include="examples\EXAMPLE_part10.tga" />
+    <Image Include="examples\EXAMPLE_part2.tga" />
+    <Image Include="examples\EXAMPLE_part3.tga" />
+    <Image Include="examples\EXAMPLE_part4.tga" />
+    <Image Include="examples\EXAMPLE_part5.tga" />
+    <Image Include="examples\EXAMPLE_part6.tga" />
+    <Image Include="examples\EXAMPLE_part7.tga" />
+    <Image Include="examples\EXAMPLE_part8_b.tga" />
+    <Image Include="examples\EXAMPLE_part8_g.tga" />
+    <Image Include="examples\EXAMPLE_part8_r.tga" />
+    <Image Include="examples\EXAMPLE_part9.tga" />
+    <Image Include="input\car.tga" />
+    <Image Include="input\circles.tga" />
+    <Image Include="input\layer1.tga" />
+    <Image Include="input\layer2.tga" />
+    <Image Include="input\layer_blue.tga" />
+    <Image Include="input\layer_green.tga" />
+    <Image Include="input\layer_red.tga" />
+    <Image Include="input\pattern1.tga" />
+    <Image Include="input\pattern2.tga" />
+    <Image Include="input\text.tga" />
+    <Image Include="input\text2.tga" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
