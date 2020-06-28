@@ -140,10 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="src\Image.cpp" />
+    <ClCompile Include="src\TargaManipulation.cpp" />
     <ClCompile Include="TargaManipulation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Image.h" />
+    <ClInclude Include="src\Image.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="examples\EXAMPLE_extracredit.tga" />
