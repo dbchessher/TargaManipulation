@@ -16,12 +16,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TargaManipulation.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Image.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Image.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -30,9 +24,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Image.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Image.h">
       <Filter>src</Filter>
     </ClInclude>
