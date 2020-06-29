@@ -23,6 +23,8 @@ public:
         char imageDescriptor;
     };
 
+    Header* header;
+
     Image();
     Image(short width, short height);
 
