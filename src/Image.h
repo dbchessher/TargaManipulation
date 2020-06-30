@@ -1,7 +1,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 #include <string>
-//#include <vector>
+#include <vector>
+//#include "Pixel.h"
 using namespace std;
 
 class Image {
@@ -23,7 +24,15 @@ public:
         char imageDescriptor;
     };
 
+    struct Pixel
+    {
+        unsigned char blueValue;
+        unsigned char greenValue;
+        unsigned char redValue;
+    };
+
     Header* header;
+    vector<Pixel>* pixels;
 
     Image();
     Image(short width, short height);
@@ -31,9 +40,9 @@ public:
     //TODO: Add Pixel class and create a data structure to 
     //store all Pixels in an image based on image resoultion
 
-private:
     string _name;
     int _resolution;
-};
 
+private:
+};
 #endif
