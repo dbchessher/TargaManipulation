@@ -1,27 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include "Image.h"
-//#include "Pixel.h"
 
 using namespace std;
 
-int main()
+void ReadIntoImage(Image* testImage, string filepath)
 {
-    Image* firstImage = new Image();
-    ifstream file("input\\car.tga", ios_base::binary);
-    //ifstream file("input\\circles.tga", ios_base::binary);
-    //ifstream file("input\\layer_blue.tga", ios_base::binary);
-    //ifstream file("input\\layer_green.tga", ios_base::binary);
-    //ifstream file("input\\layer_red.tga", ios_base::binary);
-    //ifstream file("input\\layer1.tga", ios_base::binary);
-    //ifstream file("input\\layer2.tga", ios_base::binary);
-    //ifstream file("input\\pattern1.tga", ios_base::binary);
-    //ifstream file("input\\pattern2.tga", ios_base::binary);
-    //ifstream file("input\\text.tga", ios_base::binary);
-    //ifstream file("input\\text2.tga", ios_base::binary);
-
-    unsigned char colorValue = ' ';
+    ifstream file(filepath, ios_base::binary);
 
     unsigned char blueValue = ' ';
     unsigned char greenValue = ' ';
@@ -59,14 +46,21 @@ int main()
 
         cout << "Finished Header" << endl;
 
-        //firstImage = new Image(width, height);
-        firstImage->header->dataTypeCode = dataTypeCode;
-        firstImage->header->bitsPerPixel = bitsPerPixel;
-        firstImage->header->width = width;
-        firstImage->header->height = height;
-        firstImage->_resolution = width * height;
+        testImage->header->idLength = idLength;
+        testImage->header->colorMapType = colorMapType;
+        testImage->header->dataTypeCode = dataTypeCode;
+        testImage->header->colorMapOrigin = colorMapOrigin;
+        testImage->header->colorMapLength = colorMapLength;
+        testImage->header->colorMapDepth = colorMapDepth;
+        testImage->header->xOrigin = xOrigin;
+        testImage->header->yOrigin = yOrigin;
+        testImage->header->width = width;
+        testImage->header->height = height;
+        testImage->header->bitsPerPixel = bitsPerPixel;
+        testImage->header->imageDescriptor = imageDescriptor;
+        testImage->_resolution = width * height;
 
-        count = firstImage->_resolution;
+        count = testImage->_resolution;
 
         while (!file.eof())
         {
@@ -78,7 +72,7 @@ int main()
             file.read((char*)&nextPix->redValue, sizeof(redValue));
 
             //Add pixel to pixel[]
-            firstImage->pixels->push_back(*nextPix);
+            testImage->pixels->push_back(*nextPix);
 
             //Delete pixel
             delete nextPix;
@@ -89,65 +83,103 @@ int main()
         cout << "Closed file" << endl;
     }
     else cout << "Unable to open file" << endl;
+}
 
-    ofstream writeFile("output\\car.tga", ios_base::binary);
-    //ofstream writeFile("output\\circles.tga", ios_base::binary);
-    //ofstream writeFile("output\\layer_blue.tga", ios_base::binary);
-    //ofstream writeFile("output\\layer_green.tga", ios_base::binary);
-    //ofstream writeFile("output\\layer_red.tga", ios_base::binary);
-    //ofstream writeFile("output\\layer1.tga", ios_base::binary);
-    //ofstream writeFile("output\\layer2.tga", ios_base::binary);
-    //ofstream writeFile("output\\pattern1.tga", ios_base::binary);
-    //ofstream writeFile("output\\pattern2.tga", ios_base::binary);
-    //ofstream writeFile("output\\text.tga", ios_base::binary);
-    //ofstream writeFile("output\\text2.tga", ios_base::binary);
-    
+void WriteIntoImage(Image* writeImage, string filepath)
+{
+    ofstream writeFile(filepath, ios_base::binary);
+
     if (writeFile.is_open())
     {
         cout << "Writing Header to file..." << endl;
-        writeFile.write(&idLength, sizeof(idLength));
-        writeFile.write(&colorMapType, sizeof(colorMapType));
-
-        if (&firstImage->header->dataTypeCode != nullptr)
-        {
-            writeFile.write(&firstImage->header->dataTypeCode, sizeof(dataTypeCode)); //this one
-        }
-        else writeFile.write(&dataTypeCode, sizeof(dataTypeCode)); //this one
-
-        writeFile.write((char*)&colorMapOrigin, sizeof(colorMapOrigin));
-        writeFile.write((char*)&colorMapLength, sizeof(colorMapLength));
-        writeFile.write(&colorMapDepth, sizeof(colorMapDepth));
-        writeFile.write((char*)&xOrigin, sizeof(xOrigin));
-        writeFile.write((char*)&yOrigin, sizeof(yOrigin));
-        
-        if (&firstImage->header->width != nullptr)
-        {
-            writeFile.write((char*)&firstImage->header->width, sizeof(width)); //this one
-        }
-        else writeFile.write((char*)&width, sizeof(width)); //this one
-
-        if (&firstImage->header->height != nullptr)
-        {
-            writeFile.write((char*)&firstImage->header->height, sizeof(height)); //this one
-        }
-        else writeFile.write((char*)&height, sizeof(height)); //this one
-        
-        writeFile.write(&bitsPerPixel, sizeof(bitsPerPixel)); //this one
-        writeFile.write(&imageDescriptor, sizeof(imageDescriptor));
+        writeFile.write(&writeImage->header->idLength, sizeof(writeImage->header->idLength));
+        writeFile.write(&writeImage->header->colorMapType, sizeof(writeImage->header->colorMapType));
+        writeFile.write(&writeImage->header->dataTypeCode, sizeof(writeImage->header->dataTypeCode));
+        writeFile.write((char*)&writeImage->header->colorMapOrigin, sizeof(writeImage->header->colorMapOrigin));
+        writeFile.write((char*)&writeImage->header->colorMapLength, sizeof(writeImage->header->colorMapLength));
+        writeFile.write(&writeImage->header->colorMapDepth, sizeof(writeImage->header->colorMapDepth));
+        writeFile.write((char*)&writeImage->header->xOrigin, sizeof(writeImage->header->xOrigin));
+        writeFile.write((char*)&writeImage->header->yOrigin, sizeof(writeImage->header->yOrigin));
+        writeFile.write((char*)&writeImage->header->width, sizeof(writeImage->header->width));
+        writeFile.write((char*)&writeImage->header->height, sizeof(writeImage->header->height));
+        writeFile.write(&writeImage->header->bitsPerPixel, sizeof(writeImage->header->bitsPerPixel));
+        writeFile.write(&writeImage->header->imageDescriptor, sizeof(writeImage->header->imageDescriptor));
         cout << "Finished Header" << endl;
 
         cout << "Writing Pixels to file..." << endl;
-        for (unsigned int j = 0; j < count; j++) 
+        for (unsigned int j = 0; j < writeImage->_resolution; j++)
         {
-            //unsigned char blueColor = firstImage->pixels->at(j).blueValue;
-            writeFile.write((char*)&firstImage->pixels->at(j).blueValue, sizeof(unsigned char));
-            writeFile.write((const char*)&firstImage->pixels->at(j).greenValue, sizeof(unsigned char));
-            writeFile.write((const char*)&firstImage->pixels->at(j).redValue, sizeof(unsigned char));
+            writeFile.write((char*)&writeImage->pixels->at(j).blueValue, sizeof(unsigned char));
+            writeFile.write((const char*)&writeImage->pixels->at(j).greenValue, sizeof(unsigned char));
+            writeFile.write((const char*)&writeImage->pixels->at(j).redValue, sizeof(unsigned char));
         }
         cout << "Finished Pixels" << endl;
+        writeFile.close();
     }
     else cout << "Unable to open file" << endl;
+}
 
-    writeFile.close();
+int main()
+{
+    Image* firstImage = new Image();
+    Image* secondImage = new Image();
+    Image* thirdImage = new Image();
+    Image* fourthImage = new Image();
+    Image* fifthImage = new Image();
+    Image* sixthImage = new Image();
+    Image* seventhImage = new Image();
+    Image* eighthImage = new Image();
+    Image* ninethImage = new Image();
+    Image* tenthImage = new Image();
+    Image* eleventhImage = new Image();
+
+    string firstReadPath = "input\\car.tga";
+    string secondReadPath = "input\\circles.tga";
+    string thirdReadPath = "input\\layer_blue.tga";
+    string fourthReadPath = "input\\layer_green.tga";
+    string fifthReadPath = "input\\layer_red.tga";
+    string sixthReadPath = "input\\layer1.tga";
+    string seventhReadPath = "input\\layer2.tga";
+    string eighthReadPath = "input\\pattern1.tga";
+    string ninethReadPath = "input\\pattern2.tga";
+    string tenthReadPath = "input\\text.tga";
+    string eleventhReadPath = "input\\text2.tga";
+
+    string firstWritePath = "output\\car.tga";
+    string secondWritePath = "output\\circles.tga";
+    string thirdWritePath = "output\\layer_blue.tga";
+    string fourthWritePath = "output\\layer_green.tga";
+    string fifthWritePath = "output\\layer_red.tga";
+    string sixthWritePath = "output\\layer1.tga";
+    string seventhWritePath = "output\\layer2.tga";
+    string eighthWritePath = "output\\pattern1.tga";
+    string ninethWritePath = "output\\pattern2.tga";
+    string tenthWritePath = "output\\text.tga";
+    string eleventhWritePath = "output\\text2.tga";
+
+    ReadIntoImage(firstImage, firstReadPath);
+    ReadIntoImage(secondImage, secondReadPath);
+    ReadIntoImage(thirdImage, thirdReadPath);
+    ReadIntoImage(fourthImage, fourthReadPath);
+    ReadIntoImage(fifthImage, fifthReadPath);
+    ReadIntoImage(sixthImage, sixthReadPath);
+    ReadIntoImage(seventhImage, seventhReadPath);
+    ReadIntoImage(eighthImage, eighthReadPath);
+    ReadIntoImage(ninethImage, ninethReadPath);
+    ReadIntoImage(tenthImage, tenthReadPath);
+    ReadIntoImage(eleventhImage, eleventhReadPath);
+
+    WriteIntoImage(firstImage, firstWritePath);
+    WriteIntoImage(secondImage, secondWritePath);
+    WriteIntoImage(thirdImage, thirdWritePath);
+    WriteIntoImage(fourthImage, fourthWritePath);
+    WriteIntoImage(fifthImage, fifthWritePath);
+    WriteIntoImage(sixthImage, sixthWritePath);
+    WriteIntoImage(seventhImage, seventhWritePath);
+    WriteIntoImage(eighthImage, eighthWritePath);
+    WriteIntoImage(ninethImage, ninethWritePath);
+    WriteIntoImage(tenthImage, tenthWritePath);
+    WriteIntoImage(eleventhImage, eleventhWritePath);
+
     return 0;
 }
