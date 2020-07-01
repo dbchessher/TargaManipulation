@@ -101,7 +101,7 @@ void WriteIntoImage(Image* writeImage, string filepath)
         writeFile.write(&writeImage->header->bitsPerPixel, sizeof(writeImage->header->bitsPerPixel));
         writeFile.write(&writeImage->header->imageDescriptor, sizeof(writeImage->header->imageDescriptor));
 
-        for (unsigned int j = 0; j < writeImage->_resolution; j++)
+        for (int j = 0; j < writeImage->_resolution; j++)
         {
             writeFile.write((char*)&writeImage->pixels->at(j).blueValue, sizeof(unsigned char));
             writeFile.write((const char*)&writeImage->pixels->at(j).greenValue, sizeof(unsigned char));
@@ -130,6 +130,21 @@ void FillImageHeader(Image* source, Image* copy)
     copy->_resolution = source->_resolution;
 }
 
+int CheckMinMax(int currentValue)
+{
+    if (currentValue > 255)
+    {
+        return 255;
+    }
+
+    if(currentValue < 0)
+    {
+        return 0;
+    }
+
+    return currentValue;
+}
+
 Image* Multiply(Image* topLayer, Image* bottomLayer)
 {
     unsigned int resolution = topLayer->_resolution;
@@ -152,17 +167,17 @@ Image* Multiply(Image* topLayer, Image* bottomLayer)
         int mixed_FinalizedGreen = 0;
         int mixed_FinalizedRed = 0;
 
-        top_NormalizedBlue = (topLayer->pixels->at(i).blueValue / 255.0);
-        top_NormalizedGreen = (topLayer->pixels->at(i).greenValue / 255.0);
-        top_NormalizedRed = (topLayer->pixels->at(i).redValue / 255.0);
+        top_NormalizedBlue = (topLayer->pixels->at(i).blueValue / 255.0f);
+        top_NormalizedGreen = (topLayer->pixels->at(i).greenValue / 255.0f);
+        top_NormalizedRed = (topLayer->pixels->at(i).redValue / 255.0f);
 
-        bottom_NormalizedBlue = (bottomLayer->pixels->at(i).blueValue / 255.0);
-        bottom_NormalizedGreen = (bottomLayer->pixels->at(i).greenValue / 255.0);
-        bottom_NormalizedRed = (bottomLayer->pixels->at(i).redValue / 255.0);
+        bottom_NormalizedBlue = (bottomLayer->pixels->at(i).blueValue / 255.0f);
+        bottom_NormalizedGreen = (bottomLayer->pixels->at(i).greenValue / 255.0f);
+        bottom_NormalizedRed = (bottomLayer->pixels->at(i).redValue / 255.0f);
 
-        mixed_FinalizedBlue = ((top_NormalizedBlue * bottom_NormalizedBlue) * 255) + 0.5f;
-        mixed_FinalizedGreen = ((top_NormalizedGreen * bottom_NormalizedGreen) * 255) + 0.5f;
-        mixed_FinalizedRed = ((top_NormalizedRed * bottom_NormalizedRed) * 255) + 0.5f;
+        mixed_FinalizedBlue = (int)(((top_NormalizedBlue * bottom_NormalizedBlue) * 255.0f) + 0.5f);
+        mixed_FinalizedGreen = (int)(((top_NormalizedGreen * bottom_NormalizedGreen) * 255.0f) + 0.5f);
+        mixed_FinalizedRed = (int)(((top_NormalizedRed * bottom_NormalizedRed) * 255.0f) + 0.5f);
 
         Image::Pixel* nextPix = new Image::Pixel();
 
@@ -177,6 +192,113 @@ Image* Multiply(Image* topLayer, Image* bottomLayer)
     }
 
     return mixedImage;
+}
+
+Image* Subtract(Image* target, Image* source)
+{
+    unsigned int resolution = target->_resolution;
+
+    Image* resultImage = new Image();
+
+    FillImageHeader(target, resultImage);
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        int target_Blue = 0;
+        int target_Green = 0;
+        int target_Red = 0;
+        
+        int source_Blue = 0;
+        int source_Green = 0;
+        int source_Red = 0;
+
+        int result_Blue = 0;
+        int result_Green = 0;
+        int result_Red = 0;
+
+        target_Blue = target->pixels->at(i).blueValue;
+        target_Green = target->pixels->at(i).greenValue;
+        target_Red = target->pixels->at(i).redValue;
+
+        source_Blue = source->pixels->at(i).blueValue;
+        source_Green = source->pixels->at(i).greenValue;
+        source_Red = source->pixels->at(i).redValue;
+
+        result_Blue = target_Blue - source_Blue;
+        result_Green = target_Green - source_Green;
+        result_Red = target_Red - source_Red;
+
+        result_Blue = CheckMinMax(result_Blue);
+        result_Green = CheckMinMax(result_Green);
+        result_Red = CheckMinMax(result_Red);
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = result_Blue;
+        nextPix->greenValue = result_Green;
+        nextPix->redValue = result_Red;
+
+        resultImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return resultImage;
+}
+
+Image* Screen(Image* topLayer, Image* bottomLayer)
+{
+    unsigned int resolution = topLayer->_resolution;
+
+    Image* resultImage = new Image();
+
+    FillImageHeader(topLayer, resultImage);
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        float top_NormalizedBlue = 0;
+        float top_NormalizedGreen = 0;
+        float top_NormalizedRed = 0;
+
+        float bottom_NormalizedBlue = 0;
+        float bottom_NormalizedGreen = 0;
+        float bottom_NormalizedRed = 0;
+
+        int result_FinalizedBlue = 0;
+        int result_FinalizedGreen = 0;
+        int result_FinalizedRed = 0;
+
+        top_NormalizedBlue = (topLayer->pixels->at(i).blueValue / 255.0f);
+        top_NormalizedGreen = (topLayer->pixels->at(i).greenValue / 255.0f);
+        top_NormalizedRed = (topLayer->pixels->at(i).redValue / 255.0f);
+
+        bottom_NormalizedBlue = (bottomLayer->pixels->at(i).blueValue / 255.0f);
+        bottom_NormalizedGreen = (bottomLayer->pixels->at(i).greenValue / 255.0f);
+        bottom_NormalizedRed = (bottomLayer->pixels->at(i).redValue / 255.0f);
+
+        // C = 1 - (1 - A) * (1 - B)
+        result_FinalizedBlue = (int)(((1 - (1 - top_NormalizedBlue) * (1 - bottom_NormalizedBlue)) * 255.0f) + 0.5f);
+        result_FinalizedGreen = (int)(((1 - (1 - top_NormalizedGreen) * (1 - bottom_NormalizedGreen)) * 255.0f) + 0.5f);
+        result_FinalizedRed = (int)(((1 - (1 - top_NormalizedRed) * (1 - bottom_NormalizedRed)) * 255.0f) + 0.5f);
+
+        result_FinalizedBlue = CheckMinMax(result_FinalizedBlue);
+        result_FinalizedGreen = CheckMinMax(result_FinalizedGreen);
+        result_FinalizedRed = CheckMinMax(result_FinalizedRed);
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = result_FinalizedBlue;
+        nextPix->greenValue = result_FinalizedGreen;
+        nextPix->redValue = result_FinalizedRed;
+
+        resultImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return resultImage;
 }
 
 int main()
@@ -232,18 +354,27 @@ int main()
     // Part 1
     Image* part1 = Multiply(sixthImage, eighthImage);
     WriteIntoImage(part1, "output\\part1.tga");
-    
-    WriteIntoImage(firstImage, firstWritePath);
-    WriteIntoImage(secondImage, secondWritePath);
-    WriteIntoImage(thirdImage, thirdWritePath);
-    WriteIntoImage(fourthImage, fourthWritePath);
-    WriteIntoImage(fifthImage, fifthWritePath);
-    WriteIntoImage(sixthImage, sixthWritePath);
-    WriteIntoImage(seventhImage, seventhWritePath);
-    WriteIntoImage(eighthImage, eighthWritePath);
-    WriteIntoImage(ninethImage, ninethWritePath);
-    WriteIntoImage(tenthImage, tenthWritePath);
-    WriteIntoImage(eleventhImage, eleventhWritePath);
+
+    // Part 2
+    Image* part2 = Subtract(firstImage, seventhImage);
+    WriteIntoImage(part2, "output\\part2.tga");
+
+    // Part 3
+    Image* part3a = Multiply(sixthImage, ninethImage);
+    Image* part3b = Screen(tenthImage, part3a);
+    WriteIntoImage(part3b, "output\\part3.tga");
+
+    //WriteIntoImage(firstImage, firstWritePath);
+    //WriteIntoImage(secondImage, secondWritePath);
+    //WriteIntoImage(thirdImage, thirdWritePath);
+    //WriteIntoImage(fourthImage, fourthWritePath);
+    //WriteIntoImage(fifthImage, fifthWritePath);
+    //WriteIntoImage(sixthImage, sixthWritePath);
+    //WriteIntoImage(seventhImage, seventhWritePath);
+    //WriteIntoImage(eighthImage, eighthWritePath);
+    //WriteIntoImage(ninethImage, ninethWritePath);
+    //WriteIntoImage(tenthImage, tenthWritePath);
+    //WriteIntoImage(eleventhImage, eleventhWritePath);
 
     return 0;
 }
