@@ -44,8 +44,6 @@ void ReadIntoImage(Image* testImage, string filepath)
         file.read(&bitsPerPixel, sizeof(bitsPerPixel)); //this one
         file.read(&imageDescriptor, sizeof(imageDescriptor));
 
-        cout << "Finished Header" << endl;
-
         testImage->header->idLength = idLength;
         testImage->header->colorMapType = colorMapType;
         testImage->header->dataTypeCode = dataTypeCode;
@@ -77,10 +75,9 @@ void ReadIntoImage(Image* testImage, string filepath)
             //Delete pixel
             delete nextPix;
         }
-        cout << "Finished all pixels" << endl;
+        cout << "Finished Reading Pixels" << endl;
 
         file.close();
-        cout << "Closed file" << endl;
     }
     else cout << "Unable to open file" << endl;
 }
@@ -91,7 +88,6 @@ void WriteIntoImage(Image* writeImage, string filepath)
 
     if (writeFile.is_open())
     {
-        cout << "Writing Header to file..." << endl;
         writeFile.write(&writeImage->header->idLength, sizeof(writeImage->header->idLength));
         writeFile.write(&writeImage->header->colorMapType, sizeof(writeImage->header->colorMapType));
         writeFile.write(&writeImage->header->dataTypeCode, sizeof(writeImage->header->dataTypeCode));
@@ -104,19 +100,83 @@ void WriteIntoImage(Image* writeImage, string filepath)
         writeFile.write((char*)&writeImage->header->height, sizeof(writeImage->header->height));
         writeFile.write(&writeImage->header->bitsPerPixel, sizeof(writeImage->header->bitsPerPixel));
         writeFile.write(&writeImage->header->imageDescriptor, sizeof(writeImage->header->imageDescriptor));
-        cout << "Finished Header" << endl;
 
-        cout << "Writing Pixels to file..." << endl;
         for (unsigned int j = 0; j < writeImage->_resolution; j++)
         {
             writeFile.write((char*)&writeImage->pixels->at(j).blueValue, sizeof(unsigned char));
             writeFile.write((const char*)&writeImage->pixels->at(j).greenValue, sizeof(unsigned char));
             writeFile.write((const char*)&writeImage->pixels->at(j).redValue, sizeof(unsigned char));
         }
-        cout << "Finished Pixels" << endl;
+        cout << "Finished Writing Pixels" << endl;
         writeFile.close();
     }
     else cout << "Unable to open file" << endl;
+}
+
+void FillImageHeader(Image* source, Image* copy)
+{
+    copy->header->idLength = source->header->idLength;
+    copy->header->colorMapType = source->header->colorMapType;
+    copy->header->dataTypeCode = source->header->dataTypeCode;
+    copy->header->colorMapOrigin = source->header->colorMapOrigin;
+    copy->header->colorMapLength = source->header->colorMapLength;
+    copy->header->colorMapDepth = source->header->colorMapDepth;
+    copy->header->xOrigin = source->header->xOrigin;
+    copy->header->yOrigin = source->header->yOrigin;
+    copy->header->width = source->header->width;
+    copy->header->height = source->header->height;
+    copy->header->bitsPerPixel = source->header->bitsPerPixel;
+    copy->header->imageDescriptor = source->header->imageDescriptor;
+    copy->_resolution = source->_resolution;
+}
+
+Image* Multiply(Image* topLayer, Image* bottomLayer)
+{
+    unsigned int resolution = topLayer->_resolution;
+
+    Image* mixedImage = new Image();
+
+    FillImageHeader(topLayer, mixedImage);
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        float top_NormalizedBlue = 0;
+        float top_NormalizedGreen = 0;
+        float top_NormalizedRed = 0;
+
+        float bottom_NormalizedBlue = 0;
+        float bottom_NormalizedGreen = 0;
+        float bottom_NormalizedRed = 0;
+
+        int mixed_FinalizedBlue = 0;
+        int mixed_FinalizedGreen = 0;
+        int mixed_FinalizedRed = 0;
+
+        top_NormalizedBlue = (topLayer->pixels->at(i).blueValue / 255.0);
+        top_NormalizedGreen = (topLayer->pixels->at(i).greenValue / 255.0);
+        top_NormalizedRed = (topLayer->pixels->at(i).redValue / 255.0);
+
+        bottom_NormalizedBlue = (bottomLayer->pixels->at(i).blueValue / 255.0);
+        bottom_NormalizedGreen = (bottomLayer->pixels->at(i).greenValue / 255.0);
+        bottom_NormalizedRed = (bottomLayer->pixels->at(i).redValue / 255.0);
+
+        mixed_FinalizedBlue = ((top_NormalizedBlue * bottom_NormalizedBlue) * 255) + 0.5f;
+        mixed_FinalizedGreen = ((top_NormalizedGreen * bottom_NormalizedGreen) * 255) + 0.5f;
+        mixed_FinalizedRed = ((top_NormalizedRed * bottom_NormalizedRed) * 255) + 0.5f;
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = mixed_FinalizedBlue;
+        nextPix->greenValue = mixed_FinalizedGreen;
+        nextPix->redValue = mixed_FinalizedRed;
+
+        mixedImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return mixedImage;
 }
 
 int main()
@@ -169,6 +229,10 @@ int main()
     ReadIntoImage(tenthImage, tenthReadPath);
     ReadIntoImage(eleventhImage, eleventhReadPath);
 
+    // Part 1
+    Image* part1 = Multiply(sixthImage, eighthImage);
+    WriteIntoImage(part1, "output\\part1.tga");
+    
     WriteIntoImage(firstImage, firstWritePath);
     WriteIntoImage(secondImage, secondWritePath);
     WriteIntoImage(thirdImage, thirdWritePath);
