@@ -493,6 +493,88 @@ Image* ScaleChannel(Image* resultImage, string channel, int value)
     return adjustedImage;
 }
 
+
+void SpiltChannels(Image* sourceImage)
+{
+    Image* adjustedImage_Blue = new Image();
+    Image* adjustedImage_Green = new Image();
+    Image* adjustedImage_Red = new Image();
+
+    unsigned int resolution = sourceImage->_resolution;
+
+    FillImageHeader(sourceImage, adjustedImage_Blue);
+    FillImageHeader(sourceImage, adjustedImage_Green);
+    FillImageHeader(sourceImage, adjustedImage_Red);
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        //Create a blue pixel from these values
+        Image::Pixel* bluePix = new Image::Pixel();
+        bluePix->blueValue = sourceImage->pixels->at(i).blueValue;
+        //bluePix->greenValue = 0;
+        //bluePix->redValue = 0;
+        bluePix->greenValue = sourceImage->pixels->at(i).blueValue;
+        bluePix->redValue = sourceImage->pixels->at(i).blueValue;
+
+        adjustedImage_Blue->pixels->push_back(*bluePix);
+
+        delete bluePix;
+
+        //Create a Green pixel from these values
+        Image::Pixel* greenPix = new Image::Pixel();
+        greenPix->greenValue = sourceImage->pixels->at(i).greenValue;
+        //greenPix->blueValue = 0;
+        //greenPix->redValue = 0;
+        greenPix->blueValue = sourceImage->pixels->at(i).greenValue;
+        greenPix->redValue = sourceImage->pixels->at(i).greenValue;
+
+        adjustedImage_Green->pixels->push_back(*greenPix);
+
+        delete greenPix;
+
+        //Create a Red pixel from these values
+        Image::Pixel* redPix = new Image::Pixel();
+        redPix->redValue = sourceImage->pixels->at(i).redValue;
+        //redPix->blueValue = 0;
+        //redPix->greenValue = 0;
+        redPix->blueValue = sourceImage->pixels->at(i).redValue;
+        redPix->greenValue = sourceImage->pixels->at(i).redValue;
+
+        adjustedImage_Red->pixels->push_back(*redPix);
+
+        delete redPix;
+    }
+
+    // Write all three to Output
+    WriteIntoImage(adjustedImage_Blue, "output\\part8_b.tga");
+    WriteIntoImage(adjustedImage_Green, "output\\part8_g.tga");
+    WriteIntoImage(adjustedImage_Red, "output\\part8_r.tga");
+}
+
+Image* MergeLayers(Image* blueChannel, Image* greenChannel, Image* redChannel)
+{
+    Image* resultImage = new Image();
+
+    FillImageHeader(blueChannel, resultImage);
+
+    unsigned int resolution = blueChannel->_resolution;
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        nextPix->blueValue = blueChannel->pixels->at(i).blueValue;
+        nextPix->greenValue = greenChannel->pixels->at(i).greenValue;
+        nextPix->redValue = redChannel->pixels->at(i).redValue;
+
+        resultImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return resultImage;
+}
+
 int main()
 {
     Image* carImage = new Image();
@@ -573,8 +655,13 @@ int main()
     Image* part7 = ScaleChannel(carImage, "red", 4);
     part7 = ScaleChannel(part7, "blue", 0);
     WriteIntoImage(part7, "output\\part7.tga");
-
+    
     // Part 8
+    SpiltChannels(carImage);
+
+    // Part 9
+    Image* part9 = MergeLayers(layer_blueImage, layer_greenImage, layer_redImage);
+    WriteIntoImage(part9, "output\\part9.tga");
 
     return 0;
 }
