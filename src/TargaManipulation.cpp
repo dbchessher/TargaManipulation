@@ -301,80 +301,280 @@ Image* Screen(Image* topLayer, Image* bottomLayer)
     return resultImage;
 }
 
+Image* Overlay(Image* topLayer, Image* bottomLayer)
+{
+    unsigned int resolution = topLayer->_resolution;
+
+    Image* resultImage = new Image();
+
+    FillImageHeader(topLayer, resultImage);
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        float top_NormalizedBlue = 0;
+        float top_NormalizedGreen = 0;
+        float top_NormalizedRed = 0;
+
+        float bottom_NormalizedBlue = 0;
+        float bottom_NormalizedGreen = 0;
+        float bottom_NormalizedRed = 0;
+
+        int result_FinalizedBlue = 0;
+        int result_FinalizedGreen = 0;
+        int result_FinalizedRed = 0;
+
+        top_NormalizedBlue = (topLayer->pixels->at(i).blueValue / 255.0f);
+        top_NormalizedGreen = (topLayer->pixels->at(i).greenValue / 255.0f);
+        top_NormalizedRed = (topLayer->pixels->at(i).redValue / 255.0f);
+
+        bottom_NormalizedBlue = (bottomLayer->pixels->at(i).blueValue / 255.0f);
+        bottom_NormalizedGreen = (bottomLayer->pixels->at(i).greenValue / 255.0f);
+        bottom_NormalizedRed = (bottomLayer->pixels->at(i).redValue / 255.0f);
+
+        if (((double)bottom_NormalizedBlue * 255.0f) <= 127.5) 
+        {
+            result_FinalizedBlue = (int)((2 * (top_NormalizedBlue * bottom_NormalizedBlue) * 255.0f) + 0.5f);
+        }
+        else
+        {
+            result_FinalizedBlue = (int)(((1 - 2 * (1 - top_NormalizedBlue) * (1 - bottom_NormalizedBlue)) * 255.0f) + 0.5f);
+        }
+
+        if (((double)bottom_NormalizedBlue * 255.0f) <= 127.5)
+        {
+            result_FinalizedGreen = (int)((2 * (top_NormalizedGreen * bottom_NormalizedGreen) * 255.0f) + 0.5f);
+        }
+        else
+        {
+            result_FinalizedGreen = (int)(((1 - 2 * (1 - top_NormalizedGreen) * (1 - bottom_NormalizedGreen)) * 255.0f) + 0.5f);
+        }
+
+        if (((double)bottom_NormalizedBlue * 255.0f) <= 127.5)
+        {
+            result_FinalizedRed = (int)((2 * (top_NormalizedRed * bottom_NormalizedRed) * 255.0f) + 0.5f);
+        }
+        else
+        {
+            result_FinalizedRed = (int)(((1 - 2 * (1 - top_NormalizedRed) * (1 - bottom_NormalizedRed)) * 255.0f) + 0.5f);
+        }
+
+        result_FinalizedBlue = CheckMinMax(result_FinalizedBlue);
+        result_FinalizedGreen = CheckMinMax(result_FinalizedGreen);
+        result_FinalizedRed = CheckMinMax(result_FinalizedRed);
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = result_FinalizedBlue;
+        nextPix->greenValue = result_FinalizedGreen;
+        nextPix->redValue = result_FinalizedRed;
+
+        resultImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return resultImage;
+}
+
+Image* AddToChannel(Image* resultImage, string channel, int value)
+{
+    Image* adjustedImage = new Image();
+    unsigned int resolution = resultImage->_resolution;
+
+    FillImageHeader(resultImage, adjustedImage);
+
+    int result_FinalizedBlue = 0;
+    int result_FinalizedGreen = 0;
+    int result_FinalizedRed = 0;
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        if (channel == "blue")
+        {
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedBlue += value;
+            result_FinalizedBlue = CheckMinMax(result_FinalizedBlue);
+
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+        }
+
+        if (channel == "green")
+        {
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+            result_FinalizedGreen += value;
+            result_FinalizedGreen = CheckMinMax(result_FinalizedGreen);
+        
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+        }
+
+        if (channel == "red")
+        {
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+            result_FinalizedRed += value;
+            result_FinalizedRed = CheckMinMax(result_FinalizedRed);
+        
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+        }
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = result_FinalizedBlue;
+        nextPix->greenValue = result_FinalizedGreen;
+        nextPix->redValue = result_FinalizedRed;
+
+        adjustedImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return adjustedImage;
+}
+
+Image* ScaleChannel(Image* resultImage, string channel, int value)
+{
+    Image* adjustedImage = new Image();
+    unsigned int resolution = resultImage->_resolution;
+
+    FillImageHeader(resultImage, adjustedImage);
+
+    int result_FinalizedBlue = 0;
+    int result_FinalizedGreen = 0;
+    int result_FinalizedRed = 0;
+
+    for (unsigned int i = 0; i < resolution; i++)
+    {
+        if (channel == "blue")
+        {
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedBlue *= value;
+            result_FinalizedBlue = CheckMinMax(result_FinalizedBlue);
+
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+        }
+
+        if (channel == "green")
+        {
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+            result_FinalizedGreen *= value;
+            result_FinalizedGreen = CheckMinMax(result_FinalizedGreen);
+
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+        }
+
+        if (channel == "red")
+        {
+            result_FinalizedRed = resultImage->pixels->at(i).redValue;
+            result_FinalizedRed *= value;
+            result_FinalizedRed = CheckMinMax(result_FinalizedRed);
+
+            result_FinalizedBlue = resultImage->pixels->at(i).blueValue;
+            result_FinalizedGreen = resultImage->pixels->at(i).greenValue;
+        }
+
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        //Create a pixel from these values
+        nextPix->blueValue = result_FinalizedBlue;
+        nextPix->greenValue = result_FinalizedGreen;
+        nextPix->redValue = result_FinalizedRed;
+
+        adjustedImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return adjustedImage;
+}
+
 int main()
 {
-    Image* firstImage = new Image();
-    Image* secondImage = new Image();
-    Image* thirdImage = new Image();
-    Image* fourthImage = new Image();
-    Image* fifthImage = new Image();
-    Image* sixthImage = new Image();
-    Image* seventhImage = new Image();
-    Image* eighthImage = new Image();
-    Image* ninethImage = new Image();
-    Image* tenthImage = new Image();
-    Image* eleventhImage = new Image();
+    Image* carImage = new Image();
+    Image* circlesImage = new Image();
+    Image* layer_blueImage = new Image();
+    Image* layer_greenImage = new Image();
+    Image* layer_redImage = new Image();
+    Image* layer1Image = new Image();
+    Image* layer2Image = new Image();
+    Image* pattern1Image = new Image();
+    Image* pattern2Image = new Image();
+    Image* textImage = new Image();
+    Image* text2Image = new Image();
 
-    string firstReadPath = "input\\car.tga";
-    string secondReadPath = "input\\circles.tga";
-    string thirdReadPath = "input\\layer_blue.tga";
-    string fourthReadPath = "input\\layer_green.tga";
-    string fifthReadPath = "input\\layer_red.tga";
-    string sixthReadPath = "input\\layer1.tga";
-    string seventhReadPath = "input\\layer2.tga";
-    string eighthReadPath = "input\\pattern1.tga";
-    string ninethReadPath = "input\\pattern2.tga";
-    string tenthReadPath = "input\\text.tga";
-    string eleventhReadPath = "input\\text2.tga";
+    string carReadPath = "input\\car.tga";
+    string circlesReadPath = "input\\circles.tga";
+    string layer_blueReadPath = "input\\layer_blue.tga";
+    string layer_greenReadPath = "input\\layer_green.tga";
+    string layer_redReadPath = "input\\layer_red.tga";
+    string layer1ReadPath = "input\\layer1.tga";
+    string layer2ReadPath = "input\\layer2.tga";
+    string pattern1ReadPath = "input\\pattern1.tga";
+    string pattern2ReadPath = "input\\pattern2.tga";
+    string textReadPath = "input\\text.tga";
+    string text2ReadPath = "input\\text2.tga";
 
-    string firstWritePath = "output\\car.tga";
-    string secondWritePath = "output\\circles.tga";
-    string thirdWritePath = "output\\layer_blue.tga";
-    string fourthWritePath = "output\\layer_green.tga";
-    string fifthWritePath = "output\\layer_red.tga";
-    string sixthWritePath = "output\\layer1.tga";
-    string seventhWritePath = "output\\layer2.tga";
-    string eighthWritePath = "output\\pattern1.tga";
-    string ninethWritePath = "output\\pattern2.tga";
-    string tenthWritePath = "output\\text.tga";
-    string eleventhWritePath = "output\\text2.tga";
+    string carWritePath = "output\\car.tga";
+    string circlesWritePath = "output\\circles.tga";
+    string layer_blueWritePath = "output\\layer_blue.tga";
+    string layer_greenWritePath = "output\\layer_green.tga";
+    string layer_redWritePath = "output\\layer_red.tga";
+    string layer1WritePath = "output\\layer1.tga";
+    string layer2WritePath = "output\\layer2.tga";
+    string pattern1WritePath = "output\\pattern1.tga";
+    string pattern2WritePath = "output\\pattern2.tga";
+    string textWritePath = "output\\text.tga";
+    string text2WritePath = "output\\text2.tga";
 
-    ReadIntoImage(firstImage, firstReadPath);
-    ReadIntoImage(secondImage, secondReadPath);
-    ReadIntoImage(thirdImage, thirdReadPath);
-    ReadIntoImage(fourthImage, fourthReadPath);
-    ReadIntoImage(fifthImage, fifthReadPath);
-    ReadIntoImage(sixthImage, sixthReadPath);
-    ReadIntoImage(seventhImage, seventhReadPath);
-    ReadIntoImage(eighthImage, eighthReadPath);
-    ReadIntoImage(ninethImage, ninethReadPath);
-    ReadIntoImage(tenthImage, tenthReadPath);
-    ReadIntoImage(eleventhImage, eleventhReadPath);
+    ReadIntoImage(carImage, carReadPath);
+    ReadIntoImage(circlesImage, circlesReadPath);
+    ReadIntoImage(layer_blueImage, layer_blueReadPath);
+    ReadIntoImage(layer_greenImage, layer_greenReadPath);
+    ReadIntoImage(layer_redImage, layer_redReadPath);
+    ReadIntoImage(layer1Image, layer1ReadPath);
+    ReadIntoImage(layer2Image, layer2ReadPath);
+    ReadIntoImage(pattern1Image, pattern1ReadPath);
+    ReadIntoImage(pattern2Image, pattern2ReadPath);
+    ReadIntoImage(textImage, textReadPath);
+    ReadIntoImage(text2Image, text2ReadPath);
 
     // Part 1
-    Image* part1 = Multiply(sixthImage, eighthImage);
+    Image* part1 = Multiply(layer1Image, pattern1Image);
     WriteIntoImage(part1, "output\\part1.tga");
 
     // Part 2
-    Image* part2 = Subtract(firstImage, seventhImage);
+    Image* part2 = Subtract(carImage, layer2Image);
     WriteIntoImage(part2, "output\\part2.tga");
 
     // Part 3
-    Image* part3a = Multiply(sixthImage, ninethImage);
-    Image* part3b = Screen(tenthImage, part3a);
+    Image* part3a = Multiply(layer1Image, pattern2Image);
+    Image* part3b = Screen(textImage, part3a);
     WriteIntoImage(part3b, "output\\part3.tga");
 
-    //WriteIntoImage(firstImage, firstWritePath);
-    //WriteIntoImage(secondImage, secondWritePath);
-    //WriteIntoImage(thirdImage, thirdWritePath);
-    //WriteIntoImage(fourthImage, fourthWritePath);
-    //WriteIntoImage(fifthImage, fifthWritePath);
-    //WriteIntoImage(sixthImage, sixthWritePath);
-    //WriteIntoImage(seventhImage, seventhWritePath);
-    //WriteIntoImage(eighthImage, eighthWritePath);
-    //WriteIntoImage(ninethImage, ninethWritePath);
-    //WriteIntoImage(tenthImage, tenthWritePath);
-    //WriteIntoImage(eleventhImage, eleventhWritePath);
+    // Part 4
+    Image* part4a = Multiply(layer2Image, circlesImage);
+    Image* part4b = Subtract(part4a, pattern2Image);
+    WriteIntoImage(part4b, "output\\part4.tga");
+
+    // Part 5
+    Image* part5 = Overlay(layer1Image, pattern1Image);
+    WriteIntoImage(part5, "output\\part5.tga");
+
+    // Part 6
+    Image* part6 = AddToChannel(carImage, "green", 200);
+    WriteIntoImage(part6, "output\\part6.tga");
+
+    // Part 7
+    Image* part7 = ScaleChannel(carImage, "red", 4);
+    part7 = ScaleChannel(part7, "blue", 0);
+    WriteIntoImage(part7, "output\\part7.tga");
+
+    // Part 8
 
     return 0;
 }
