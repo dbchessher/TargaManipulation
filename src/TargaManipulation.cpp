@@ -511,8 +511,6 @@ void SpiltChannels(Image* sourceImage)
         //Create a blue pixel from these values
         Image::Pixel* bluePix = new Image::Pixel();
         bluePix->blueValue = sourceImage->pixels->at(i).blueValue;
-        //bluePix->greenValue = 0;
-        //bluePix->redValue = 0;
         bluePix->greenValue = sourceImage->pixels->at(i).blueValue;
         bluePix->redValue = sourceImage->pixels->at(i).blueValue;
 
@@ -523,8 +521,6 @@ void SpiltChannels(Image* sourceImage)
         //Create a Green pixel from these values
         Image::Pixel* greenPix = new Image::Pixel();
         greenPix->greenValue = sourceImage->pixels->at(i).greenValue;
-        //greenPix->blueValue = 0;
-        //greenPix->redValue = 0;
         greenPix->blueValue = sourceImage->pixels->at(i).greenValue;
         greenPix->redValue = sourceImage->pixels->at(i).greenValue;
 
@@ -535,8 +531,6 @@ void SpiltChannels(Image* sourceImage)
         //Create a Red pixel from these values
         Image::Pixel* redPix = new Image::Pixel();
         redPix->redValue = sourceImage->pixels->at(i).redValue;
-        //redPix->blueValue = 0;
-        //redPix->greenValue = 0;
         redPix->blueValue = sourceImage->pixels->at(i).redValue;
         redPix->greenValue = sourceImage->pixels->at(i).redValue;
 
@@ -570,6 +564,110 @@ Image* MergeLayers(Image* blueChannel, Image* greenChannel, Image* redChannel)
         resultImage->pixels->push_back(*nextPix);
 
         delete nextPix;
+    }
+
+    return resultImage;
+}
+
+Image* Rotate180(Image* targetImage)
+{
+    Image* resultImage = new Image();
+
+    FillImageHeader(targetImage, resultImage);
+
+    int resolution = (int)targetImage->_resolution;
+
+    for (int i = (resolution - 1); i >= 0; i--)
+    {
+        Image::Pixel* nextPix = new Image::Pixel();
+
+        nextPix->blueValue = targetImage->pixels->at(i).blueValue;
+        nextPix->greenValue = targetImage->pixels->at(i).greenValue;
+        nextPix->redValue = targetImage->pixels->at(i).redValue;
+
+        resultImage->pixels->push_back(*nextPix);
+
+        delete nextPix;
+    }
+
+    return resultImage;
+}
+
+Image* Merge4(Image* bottomLeft, Image* bottomRight, Image* topLeft, Image* topRight)
+{
+    // TODO: Refactor to reduce repeated code.
+    Image* resultImage = new Image();
+
+    FillImageHeader(bottomLeft, resultImage);
+
+    resultImage->header->height = (bottomLeft->header->height * 2);
+    resultImage->header->width = (bottomLeft->header->width * 2);
+    resultImage->_resolution = (resultImage->header->height * resultImage->header->width);
+
+    int count = 0;
+
+    for (short i = 0; i < bottomLeft->header->height; i++)
+    {
+        for (int j = count; j < count + (int)bottomLeft->header->width; j++)
+        {
+            Image::Pixel* nextPix = new Image::Pixel();
+
+            nextPix->blueValue = bottomLeft->pixels->at(j).blueValue;
+            nextPix->greenValue = bottomLeft->pixels->at(j).greenValue;
+            nextPix->redValue = bottomLeft->pixels->at(j).redValue;
+
+            resultImage->pixels->push_back(*nextPix);
+            
+            delete nextPix;
+        }
+
+        for (int k = count; k < count + (int)bottomRight->header->width; k++)
+        {
+            Image::Pixel* nextPix = new Image::Pixel();
+
+            nextPix->blueValue = bottomRight->pixels->at(k).blueValue;
+            nextPix->greenValue = bottomRight->pixels->at(k).greenValue;
+            nextPix->redValue = bottomRight->pixels->at(k).redValue;
+
+            resultImage->pixels->push_back(*nextPix);
+
+            delete nextPix;
+        }
+
+        count += bottomLeft->header->width;
+    }
+
+    count = 0;
+
+    for (short i = 0; i < topLeft->header->height; i++)
+    {
+        for (int j = count; j < count + (int)topLeft->header->width; j++)
+        {
+            Image::Pixel* nextPix = new Image::Pixel();
+
+            nextPix->blueValue = topLeft->pixels->at(j).blueValue;
+            nextPix->greenValue = topLeft->pixels->at(j).greenValue;
+            nextPix->redValue = topLeft->pixels->at(j).redValue;
+
+            resultImage->pixels->push_back(*nextPix);
+
+            delete nextPix;
+        }
+
+        for (int k = count; k < count + (int)topRight->header->width; k++)
+        {
+            Image::Pixel* nextPix = new Image::Pixel();
+
+            nextPix->blueValue = topRight->pixels->at(k).blueValue;
+            nextPix->greenValue = topRight->pixels->at(k).greenValue;
+            nextPix->redValue = topRight->pixels->at(k).redValue;
+
+            resultImage->pixels->push_back(*nextPix);
+
+            delete nextPix;
+        }
+
+        count += topLeft->header->width;
     }
 
     return resultImage;
@@ -662,6 +760,14 @@ int main()
     // Part 9
     Image* part9 = MergeLayers(layer_blueImage, layer_greenImage, layer_redImage);
     WriteIntoImage(part9, "output\\part9.tga");
+
+    // Part 10
+    Image* part10 = Rotate180(text2Image);
+    WriteIntoImage(part10, "output\\part10.tga");
+
+    // Extra Credit
+    Image* extraCredit = Merge4(textImage, pattern1Image, carImage, circlesImage);
+    WriteIntoImage(extraCredit, "output\\extracredit.tga");
 
     return 0;
 }
