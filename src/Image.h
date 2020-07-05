@@ -2,7 +2,7 @@
 #define IMAGE_H
 #include <string>
 #include <vector>
-//#include "Pixel.h"
+
 using namespace std;
 
 class Image {
@@ -31,17 +31,18 @@ public:
         unsigned char redValue;
     };
 
+    string _name;
+    int _resolution;
+
     Header* header;
     vector<Pixel>* pixels;
 
+    //TODO: Add Destructor, Copy Constructor, and Copy Assignment Operator
     Image();
     Image(short width, short height);
-
-    //TODO: Add Pixel class and create a data structure to 
-    //store all Pixels in an image based on image resoultion
-
-    string _name;
-    int _resolution;
+    ~Image();
+    Image& operator=(const Image& rhs);
+    Image(const Image& list);
 
 private:
 };
