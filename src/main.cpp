@@ -595,13 +595,17 @@ void SpiltChannels(Image* sourceImage)
     ReadIntoImage(example_part8g, readPath_example_part8g);
     ReadIntoImage(example_part8r, readPath_example_part8r);
 
+#pragma region Testing
+
+    /* DEBUG: TESTING SECTION
+    ----------------------------------------------
+    ----------------------------------------------
+
     bool isMatch = CompareImages(adjustedImage_Blue, example_part8b);
-    int compareCount = 0;
 
     if (isMatch)
     {
         cout << "Test 8a..........Passed!" << endl;
-        compareCount++;
     }
     else
     {
@@ -613,7 +617,6 @@ void SpiltChannels(Image* sourceImage)
     if (isMatch)
     {
         cout << "Test 8..........Passed!" << endl;
-        compareCount++;
     }
     else
     {
@@ -625,13 +628,14 @@ void SpiltChannels(Image* sourceImage)
     if (isMatch)
     {
         cout << "Test 8c..........Passed!" << endl;
-        compareCount++;
     }
     else
     {
         cout << "Test 8c..........Failed!" << endl;
 
     }
+    */
+#pragma endregion
 }
 
 Image* MergeLayers(Image* blueChannel, Image* greenChannel, Image* redChannel)
@@ -684,7 +688,6 @@ Image* Rotate180(Image* targetImage)
 
 Image* Merge4(Image* bottomLeft, Image* bottomRight, Image* topLeft, Image* topRight)
 {
-    // TODO: Refactor to reduce repeated code.
     Image* resultImage = new Image();
 
     FillImageHeader(bottomLeft, resultImage);
@@ -842,61 +845,74 @@ int main()
     ReadIntoImage(example_part10, readPath_example_part10);
     ReadIntoImage(example_extraCredit, readPath_example_extraCredit);
 
-    cout << "Finished Loading Images" << endl;
-
     int compareCount = 0;
     bool isMatch = false;
+
+    cout << "Begin Tasks" << endl;
 
     // Part 1
     Image* part1 = Multiply(layer1Image, pattern1Image);
     WriteIntoImage(part1, "output\\part1.tga");
+    cout << "Task 1 Complete" << endl;
 
     // Part 2
     Image* part2 = Subtract(carImage, layer2Image);
     WriteIntoImage(part2, "output\\part2.tga");
+    cout << "Task 2 Complete" << endl;
 
     // Part 3
     Image* part3a = Multiply(layer1Image, pattern2Image);
     Image* part3b = Screen(textImage, part3a);
     WriteIntoImage(part3b, "output\\part3.tga");
+    cout << "Task 3 Complete" << endl;
 
     // Part 4
     Image* part4a = Multiply(layer2Image, circlesImage);
     Image* part4b = Subtract(part4a, pattern2Image);
     WriteIntoImage(part4b, "output\\part4.tga");
+    cout << "Task 4 Complete" << endl;
 
     // Part 5
     Image* part5 = Overlay(layer1Image, pattern1Image);
     WriteIntoImage(part5, "output\\part5.tga");
+    cout << "Task 5 Complete" << endl;
 
     // Part 6
     Image* part6 = AddToChannel(carImage, "green", 200);
     WriteIntoImage(part6, "output\\part6.tga");
+    cout << "Task 6 Complete" << endl;
 
     // Part 7
     Image* part7 = ScaleChannel(carImage, "red", 4);
     part7 = ScaleChannel(part7, "blue", 0);
     WriteIntoImage(part7, "output\\part7.tga");
-    
+    cout << "Task 7 Complete" << endl;
+
     // Part 8
     SpiltChannels(carImage);
+    cout << "Task 8 Complete" << endl;
 
     // Part 9
     Image* part9 = MergeLayers(layer_blueImage, layer_greenImage, layer_redImage);
     WriteIntoImage(part9, "output\\part9.tga");
+    cout << "Task 9 Complete" << endl;
 
     // Part 10
     Image* part10 = Rotate180(text2Image);
     WriteIntoImage(part10, "output\\part10.tga");
+    cout << "Task 10 Complete" << endl;
 
     // Extra Credit
     Image* extraCredit = Merge4(textImage, pattern1Image, carImage, circlesImage);
     WriteIntoImage(extraCredit, "output\\extracredit.tga");
-
-    cout << "Finished Writing All Images" << endl;
-    cout << "Begin Image Comparison Tests" << endl;
+    cout << "Extra Credit Task Complete" << endl;
     
-    //Image* imageContainer = new Image[13];
+#pragma region Testing
+    
+    /* DEBUG: TESTING SECTION
+    ----------------------------------------------
+    ----------------------------------------------
+    cout << "Begin Image Comparison Tests" << endl;
 
     isMatch = CompareImages(part1, example_part1);
 
@@ -1029,6 +1045,8 @@ int main()
     }
 
     cout << "Test Results: " << compareCount << " / 10" << endl;
+    */
+#pragma endregion
 
     return 0;
 }
